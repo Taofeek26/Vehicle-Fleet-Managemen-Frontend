@@ -1,82 +1,71 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DashboardLayout from "./components/DashboardLayout";
-import Drivers from "./pages/Driver";
-import AddVehicles from "./pages/AddVehicle";
-import Vehicles from "./pages/VehicleList";
-import EditVehicle from "./pages/EditVehicle";
+import PrivateRoute from "./components/PrivateRoute";
 import Home from "./pages/Home";
-import SupervisorRegister from "./pages/SupervisorRegister";
-import Driver from "./pages/Driver";
-import Supervisor from "./pages/Supervisor";
-import DriverLogin from "./pages/DriverLogin";
-import DriverRegister from "./pages/DriverRegister";
-import SupervisorLogin from "./pages/SupervisorLogin";
-import Logout from "./pages/Logout"; // Import the Logout component
-import SupervisorDashboard from "./pages/SupervisorDashboard";
-import DriverDashboard from "./pages/DriverDashboard";
-import DriverList from "./pages/DriverList";
-import EditDriver from "./pages/EditDriver";
-import EndTrip from "./pages/EndTrip";
-import StartTrip from "./pages/StartTrip";
-import DriverTrips from "./pages/DriverTrip";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Logout from "./pages/Logout";
+import UserList from "./pages/UserList";
+import UserDetail from "./pages/UserDetail"; // New import
+import VehicleList from "./pages/VehicleList";
+import VehicleDetail from "./pages/VehicleDetail"; // New import
+import AddVehicle from "./pages/AddVehicle";
+import TripRequestList from "./pages/TripRequestList";
+import CreateTripRequest from "./pages/CreateTripRequest";
+import TripRequestDetail from "./pages/TripRequestDetail"; // New import
+import ManagerApprovalPage from "./pages/ManagerApprovalPage";
 import MapPage from "./pages/MapPage";
+import NotificationList from "./pages/NotificationList"; // New import
+import RecordDetailsPage from "./pages/RecordDetailsPage"; // New import
+import DashboardHome from "./pages/DashboardHome"; // New import
+import EndTripForm from "./pages/EndTripForm"; // New import
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Login/Home Page */}
+        {/* Authentication */}
         <Route path="/" element={<Home />} />
-
-        {/* Supervisor Register/Login Page */}
-        <Route path="/supervisor" element={<Supervisor />} />
-        <Route path="/register-supervisor" element={<SupervisorRegister />} />
-        <Route path="/supervisor-login" element={<SupervisorLogin />} />
-
-        {/* Driver Login/Register Page */}
-        <Route path="/driver" element={<Driver />} />
-        <Route path="/driver-login" element={<DriverLogin />} />
-        <Route path="/driver-register" element={<DriverRegister />} />
-
-        {/* Logout Page */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/logout" element={<Logout />} />
 
-        {/* Edit Driver */}
-        <Route path="/edit-driver/:id" element={<EditDriver />} />
+        {/* Protected Routes */}
+        <Route element={<PrivateRoute />}>
+          <Route path="dashboard" element={<DashboardLayout />}>
+            <Route index element={<DashboardHome />} />
+            {/* User Management */}
+            <Route path="users" element={<UserList />} />
+            <Route path="users/:id" element={<UserDetail />} /> {/* New Route */}
 
-        {/* Dashboard Layout with Nested Routes */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<SupervisorDashboard />} />
-          <Route path="drivers" element={<DriverList />} />
-          <Route path="vehicles" element={<Vehicles />} />
-          <Route path="add-vehicle" element={<AddVehicles />} />
-          <Route path="edit-vehicle/:id" element={<EditVehicle />} />
-          <Route path="driver-dasboard" element={<DriverDashboard />} />
-          <Route path="driver-trips" element={<DriverTrips />} />
-          <Route path="start-trip" element={<StartTrip />} />
-          <Route path="end-trip/:id" element={<EndTrip />} />
-          <Route path="map" element={<MapPage />} />
+            {/* Vehicle Management */}
+            <Route path="vehicles" element={<VehicleList />} />
+            <Route path="add-vehicle" element={<AddVehicle />} />
+            <Route path="vehicles/:id" element={<VehicleDetail />} /> {/* New Route */}
+
+            {/* Trip Requests */}
+            <Route path="trip-requests" element={<TripRequestList />} />
+            <Route path="create-trip-request" element={<CreateTripRequest />} />
+            <Route path="trip-requests/:id" element={<TripRequestDetail />} /> {/* New Route */}
+            <Route path="approve-request/:id" element={<ManagerApprovalPage />} />
+            <Route path="end-trip/:id" element={<EndTripForm />} /> {/* New Route for End Trip */}
+            
+
+            {/* Notifications */}
+            <Route path="notifications" element={<NotificationList />} /> {/* New Route */}
+
+            {/* Map */}
+            <Route path="map" element={<MapPage />} />
+
+            {/* Single Record Details Page */}
+            <Route path="records/:type/:id" element={<RecordDetailsPage />} /> {/* New Route */}
+          </Route>
         </Route>
 
-        {/* Fallback Route for 404 */}
-        <Route
-          path="*"
-          element={
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100vh",
-                flexDirection: "column",
-              }}
-            >
-              <h1>404 - Page Not Found</h1>
-              <p>The page you are looking for does not exist.</p>
-            </div>
-          }
-        />
+        {/* Fallback Route */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

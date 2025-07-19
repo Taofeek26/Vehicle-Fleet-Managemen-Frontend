@@ -1,21 +1,22 @@
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Logout = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Remove the access token and other stored user data
-    localStorage.removeItem("access_token");
+    // Clear authentication token from local storage
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    // Optionally, clear any user-specific state in your application
 
-    // Redirect to the Home page
-    navigate("/");
+    // Redirect to home page
+    navigate('/');
   }, [navigate]);
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h2>Logging out...</h2>
-      <p>You are being redirected to the Home page.</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <p className="text-lg text-gray-700">Logging out...</p>
     </div>
   );
 };

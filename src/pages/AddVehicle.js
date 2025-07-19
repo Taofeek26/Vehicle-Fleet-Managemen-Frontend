@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { createVehicle, getUsers } from "../api"; // Import from centralized API
 import { useNavigate } from "react-router-dom";
 
 const AddVehicle = () => {
@@ -7,43 +7,67 @@ const AddVehicle = () => {
     vehicle_name: "",
     vehicle_number: "",
     assigned_driver: "", // Driver ID
+    supervisor: "", // Supervisor ID
     last_maintenance_date: "",
     next_maintenance_date: "",
   });
   const [drivers, setDrivers] = useState([]); // List of available drivers
+  const [supervisors, setSupervisors] = useState([]); // List of available supervisors
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const token = localStorage.getItem("access_token"); // Retrieve access token
-
-  // Fetch available drivers
+  // Fetch available drivers and supervisors
   useEffect(() => {
-    const fetchDrivers = async () => {
+    const fetchUsersByRole = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/drivers/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setDrivers(response.data); // Set drivers list
+        const response = await getUsers(); // Use centralized API
+        const allUsers = response.data;
+
+        const driverUsers = allUsers.filter((user) => user.role === "driver");
+        setDrivers(driverUsers);
+
+        const supervisorUsers = allUsers.filter((user) => user.role === "supervisor");
+        setSupervisors(supervisorUsers);
+
       } catch (err) {
-        console.error("Error fetching drivers:", err);
-        setError("Failed to load drivers. Please try again.");
+        console.error("Error fetching users:", err);
+        setError("Failed to load drivers and supervisors. Please try again.");
       }
     };
 
-    fetchDrivers();
-  }, [token]);
+    fetchUsersByRole();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setNewVehicle({ ...newVehicle, [name]: value });
+  };
 
   // Handle adding a new vehicle
   const handleAddVehicle = async () => {
+    setError("");
     try {
-      await axios.post("http://127.0.0.1:8000/api/vehicles/", newVehicle, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const dataToSend = { ...newVehicle };
+      // Convert empty strings to null for foreign key fields
+      if (dataToSend.assigned_driver === "") {
+        dataToSend.assigned_driver = null;
+      } else {
+        dataToSend.assigned_driver = parseInt(dataToSend.assigned_driver); // Ensure it's an integer ID
+      }
+      if (dataToSend.supervisor === "") {
+        dataToSend.supervisor = null;
+      } else {
+        dataToSend.supervisor = parseInt(dataToSend.supervisor); // Ensure it's an integer ID
+      }
+
+      await createVehicle(dataToSend); // Use centralized API
       alert("Vehicle added successfully!");
       navigate("/dashboard/vehicles"); // Navigate back to the vehicle list
     } catch (err) {
-      console.error("Error adding vehicle:", err);
-      setError("Failed to add vehicle. Please check the details.");
+      console.error("Error adding vehicle:", err.response?.data);
+      setError(
+        err.response?.data?.detail || "Failed to add vehicle. Please check the details."
+      );
     }
   };
 
@@ -67,12 +91,11 @@ const AddVehicle = () => {
           </label>
           <input
             type="text"
+            name="vehicle_name"
             placeholder="Enter vehicle name"
             value={newVehicle.vehicle_name}
-            onChange={(e) =>
-              setNewVehicle({ ...newVehicle, vehicle_name: e.target.value })
-            }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
@@ -84,12 +107,11 @@ const AddVehicle = () => {
           </label>
           <input
             type="text"
+            name="vehicle_number"
             placeholder="Enter vehicle number"
             value={newVehicle.vehicle_number}
-            onChange={(e) =>
-              setNewVehicle({ ...newVehicle, vehicle_number: e.target.value })
-            }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
@@ -100,16 +122,35 @@ const AddVehicle = () => {
             Assigned Driver:
           </label>
           <select
+            name="assigned_driver"
             value={newVehicle.assigned_driver}
-            onChange={(e) =>
-              setNewVehicle({ ...newVehicle, assigned_driver: e.target.value })
-            }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select a driver</option>
             {drivers.map((driver) => (
               <option key={driver.id} value={driver.id}>
                 {driver.username}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Supervisor */}
+        <div className="mb-4">
+          <label className="block text-gray-700 font-medium mb-1">
+            Supervisor:
+          </label>
+          <select
+            name="supervisor"
+            value={newVehicle.supervisor}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select a supervisor</option>
+            {supervisors.map((supervisor) => (
+              <option key={supervisor.id} value={supervisor.id}>
+                {supervisor.username}
               </option>
             ))}
           </select>
@@ -122,14 +163,10 @@ const AddVehicle = () => {
           </label>
           <input
             type="date"
+            name="last_maintenance_date"
             value={newVehicle.last_maintenance_date}
-            onChange={(e) =>
-              setNewVehicle({
-                ...newVehicle,
-                last_maintenance_date: e.target.value,
-              })
-            }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
@@ -141,14 +178,10 @@ const AddVehicle = () => {
           </label>
           <input
             type="date"
+            name="next_maintenance_date"
             value={newVehicle.next_maintenance_date}
-            onChange={(e) =>
-              setNewVehicle({
-                ...newVehicle,
-                next_maintenance_date: e.target.value,
-              })
-            }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
@@ -157,13 +190,14 @@ const AddVehicle = () => {
         <div className="flex justify-between">
           <button
             type="submit"
-            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
           >
             Add Vehicle
           </button>
           <button
+            type="button"
             onClick={() => navigate("/dashboard/vehicles")}
-            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
           >
             Back to Vehicles
           </button>

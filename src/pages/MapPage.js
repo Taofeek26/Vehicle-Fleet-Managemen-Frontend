@@ -1,157 +1,83 @@
-import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import axios from "axios";
-import { useSearchParams } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import { getVehicles } from '../api'; // Import from centralized API
 
-// Fix Leaflet marker icon issue
-import L from "leaflet";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerIconShadow from "leaflet/dist/images/marker-shadow.png";
-
-let DefaultIcon = L.icon({
-  iconUrl: markerIcon,
-  shadowUrl: markerIconShadow,
+// Fix for default marker icon
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
-L.Marker.prototype.options.icon = DefaultIcon;
-
-// Helper component to adjust map bounds
-const FitBounds = ({ vehicles }) => {
-  const map = useMap();
-
-  useEffect(() => {
-    if (vehicles.length > 0) {
-      const bounds = L.latLngBounds(
-        vehicles.map((vehicle) => [
-          vehicle.latitude || 51.505,
-          vehicle.longitude || -0.09,
-        ])
-      );
-      map.fitBounds(bounds, { padding: [50, 50] });
-    }
-  }, [vehicles, map]);
-
-  return null;
-};
 
 const MapPage = () => {
   const [vehicles, setVehicles] = useState([]);
-  const [error, setError] = useState("");
-  const [mapCenter, setMapCenter] = useState([51.505, -0.09]); // Default center
-  const token = localStorage.getItem("access_token");
-  const [searchParams] = useSearchParams();
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const fetchPlaceName = async (latitude, longitude) => {
+  const fetchVehicles = async () => {
     try {
-      const response = await axios.get(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-      );
-      return response.data.display_name || "Unknown Location";
+      const response = await getVehicles(); // Use centralized API
+      // Filter vehicles that have location data
+      const vehiclesWithLocation = response.data.filter(v => v.latitude && v.longitude);
+      setVehicles(vehiclesWithLocation);
     } catch (err) {
-      console.error("Error fetching place name:", err);
-      return "Unknown Location";
+      console.error('Failed to fetch vehicles:', err);
+      setError('Failed to load vehicle locations.');
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const fetchVehicleLocations = async () => {
-      try {
-        const response = await axios.get(
-          "http://127.0.0.1:8000/api/vehicles/",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+    fetchVehicles(); // Initial fetch
 
-        // Fetch place names for each vehicle
-        const updatedVehicles = await Promise.all(
-          response.data.map(async (vehicle) => {
-            const placeName = await fetchPlaceName(
-              vehicle.latitude || 51.505,
-              vehicle.longitude || -0.09
-            );
-            return { ...vehicle, placeName };
-          })
-        );
+    // Set up interval for periodic updates (e.g., every 10 seconds)
+    const intervalId = setInterval(fetchVehicles, 10000); 
 
-        setVehicles(updatedVehicles);
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
+  }, []);
 
-        // If search params exist, center map on specific coordinates
-        const latitude = parseFloat(searchParams.get("latitude"));
-        const longitude = parseFloat(searchParams.get("longitude"));
-        console.log("Error fetching vehicle locations::", latitude, longitude);
-        if (!isNaN(latitude) && !isNaN(longitude)) {
-          setMapCenter([latitude, longitude]);
-        } else if (updatedVehicles.length > 0) {
-          // Default to the first vehicle's location if no search params
-          setMapCenter([
-            updatedVehicles[0].latitude || 51.505,
-            updatedVehicles[0].longitude || -0.09,
-          ]);
-        }
-      } catch (err) {
-        console.error("Error fetching vehicle locations:", err);
-        setError("Failed to load vehicle locations. Please try again.");
-      }
-    };
-
-    fetchVehicleLocations();
-  }, [token, searchParams]);
+  if (loading) return <div className="text-center py-4">Loading map data...</div>;
+  if (error) return <div className="text-center py-4 text-red-500">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
-      <div className="bg-white shadow-md rounded-lg w-full max-w-4xl p-6 mb-6">
-        <h2 className="text-3xl font-bold text-center text-gray-800">
-          Vehicle Tracking Map
-        </h2>
-        {error && <p className="text-red-500 text-center mt-4">{error}</p>}
-      </div>
-
-      <div className="w-full max-w-7xl">
-        <MapContainer
-          center={mapCenter} // Dynamic center based on search params or vehicles
-          zoom={10}
-          className="rounded-lg shadow-lg"
-          style={{ height: "80vh", width: "100%" }}
-        >
-          {/* Adjust map bounds to fit all vehicles */}
-          <FitBounds vehicles={vehicles} />
-
-          {/* Map Tiles */}
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <h2 className="text-2xl font-bold mb-4">Live Vehicle Map</h2>
+      <div style={{ height: '600px', width: '100%' }} className="rounded-lg shadow-md overflow-hidden">
+        <MapContainer center={[9.0765, 7.3986]} zoom={6} style={{ height: '100%', width: '100%' }}>
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-
-          {/* Vehicle Markers */}
-          {vehicles.map((vehicle) => (
-            <Marker
-              key={vehicle.id}
-              position={[
-                vehicle.latitude || 51.505,
-                vehicle.longitude || -0.09,
-              ]}
-            >
+          {vehicles.map(vehicle => (
+            <Marker key={vehicle.id} position={[vehicle.latitude, vehicle.longitude]}>
               <Popup>
-                <div className="text-sm text-gray-700">
-                  <p>
-                    <strong>Vehicle:</strong> {vehicle.vehicle_name}
-                  </p>
-                  <p>
-                    <strong>Driver:</strong> {vehicle.assigned_driver || "N/A"}
-                  </p>
-                  <p>
-                    <strong>Location:</strong> {vehicle.placeName}
-                  </p>
-                  <p>
-                    <strong>Last Updated:</strong>{" "}
-                    {vehicle.last_updated || "N/A"}
-                  </p>
-                </div>
+                <strong className="text-lg">{vehicle.vehicle_name}</strong><br />
+                <span className="text-sm text-gray-600">{vehicle.vehicle_number}</span><br />
+                <span className="text-sm">Driver: {vehicle.assigned_driver_name || 'N/A'}</span><br />
+                <span className="text-xs text-gray-500">Last Updated: {new Date(vehicle.last_updated).toLocaleTimeString()}</span>
               </Popup>
             </Marker>
           ))}
         </MapContainer>
+      </div>
+      <div className="mt-6 bg-white p-4 rounded-lg shadow-md">
+        <h3 className="text-xl font-semibold mb-3">Vehicles with Location Data:</h3>
+        {vehicles.length > 0 ? (
+          <ul className="list-disc list-inside">
+            {vehicles.map(vehicle => (
+              <li key={vehicle.id} className="mb-1">
+                <strong>{vehicle.vehicle_name} ({vehicle.vehicle_number}):</strong> Lat: {vehicle.latitude.toFixed(4)}, Lng: {vehicle.longitude.toFixed(4)} (Driver: {vehicle.assigned_driver_name || 'N/A'})
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-600">No vehicles with active location data found.</p>
+        )}
       </div>
     </div>
   );
