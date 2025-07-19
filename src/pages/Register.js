@@ -12,6 +12,7 @@ const Register = () => {
     year_joined: "",
     type_of_appointment: "",
     reports_to: "",
+    manager_passcode: "", // New field
   });
   const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
@@ -52,6 +53,7 @@ const Register = () => {
     } catch (err) {
       console.error("Registration failed:", err.response?.data);
       setError(
+        err.response?.data?.error ||
         err.response?.data?.detail ||
           err.response?.data?.username?.[0] ||
           err.response?.data?.email?.[0] ||
@@ -81,6 +83,17 @@ const Register = () => {
             <option value="supervisor">Supervisor</option>
             <option value="manager">Manager</option>
           </select>
+          {formData.role === 'manager' && (
+            <input
+              type="password"
+              name="manager_passcode"
+              value={formData.manager_passcode}
+              onChange={handleChange}
+              placeholder="Manager Passcode"
+              required
+              className="w-full px-4 py-2 border rounded-md"
+            />
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input type="number" name="year_joined" value={formData.year_joined} onChange={handleChange} placeholder="Year Joined" className="w-full px-4 py-2 border rounded-md"/>
             <input type="text" name="type_of_appointment" value={formData.type_of_appointment} onChange={handleChange} placeholder="Type of Appointment" className="w-full px-4 py-2 border rounded-md"/>

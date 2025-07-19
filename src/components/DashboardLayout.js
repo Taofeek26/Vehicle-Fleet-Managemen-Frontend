@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Outlet, useNavigate, Link } from "react-router-dom";
 import { getCurrentUser, getNotifications, markNotificationAsRead } from "../api";
-import { Bell, Car, Users, LogOut, FilePlus, List, Map, Home as HomeIcon, Menu } from 'lucide-react';
+import { Bell, Car, Users, LogOut, FilePlus, List, Map, Home as HomeIcon, Menu, UserCircle } from 'lucide-react';
 import { useTheme } from './ThemeContext';
 import ThemeSwitcher from './ThemeSwitcher';
 
@@ -60,65 +60,72 @@ const Sidebar = ({ role, fullName, isSidebarOpen }) => {
   );
 };
 
-const Header = ({ notifications, onMarkNotificationAsRead, toggleSidebar, isSidebarOpen }) => {
+const Header = ({ user, notifications, onMarkNotificationAsRead, toggleSidebar, isSidebarOpen }) => {
   const [showNotifications, setShowNotifications] = useState(false);
 
   const unreadNotifications = notifications.filter(n => !n.is_read);
 
   return (
-    <header className="bg-white shadow-md p-4 flex justify-between items-center">
+    <header className="bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center">
       <div className="flex items-center">
         <button 
           onClick={toggleSidebar}
-          className="p-2 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 mr-4"
+          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 mr-4"
         >
-          <Menu className="h-6 w-6 text-gray-600" />
+          <Menu className="h-6 w-6 text-gray-600 dark:text-gray-300" />
         </button>
-        <h1 className="text-xl font-bold text-gray-800">Dashboard</h1>
+        <h1 className="text-xl font-bold text-gray-800 dark:text-white">Dashboard</h1>
       </div>
-      <div className="relative">
-        <button 
-          onClick={() => setShowNotifications(true)}
-          className="relative p-2 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <Bell className="h-6 w-6 text-gray-600" />
-          {unreadNotifications.length > 0 && (
-            <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
-              {unreadNotifications.length}
-            </span>
-          )}
-        </button>
-        
-        {showNotifications && (
-          <div 
-            onMouseLeave={() => setShowNotifications(false)}
-            className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl p-4 z-10 border border-gray-200"
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <button 
+            onClick={() => setShowNotifications(true)}
+            className="relative p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <h3 className="font-bold mb-2 text-gray-800">Notifications</h3>
-            {notifications.length === 0 ? (
-              <p className="text-gray-500 text-sm">No notifications.</p>
-            ) : (
-              <ul>
-                {notifications.map(notification => (
-                  <li 
-                    key={notification.id} 
-                    className={`border-b border-gray-200 py-2 last:border-b-0 ${notification.is_read ? 'text-gray-500' : 'text-gray-800 font-medium'}`}
-                  >
-                    {notification.message}
-                    {!notification.is_read && (
-                      <button 
-                        onClick={() => onMarkNotificationAsRead(notification.id)}
-                        className="ml-2 text-blue-500 hover:text-blue-700 text-xs"
-                      >
-                        Mark as Read
-                      </button>
-                    )}
-                    <p className="text-xs text-gray-400 mt-1">{new Date(notification.created_at).toLocaleString()}</p>
-                  </li>
-                ))}
-              </ul>
+            <Bell className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+            {unreadNotifications.length > 0 && (
+              <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
+                {unreadNotifications.length}
+              </span>
             )}
-          </div>
+          </button>
+          
+          {showNotifications && (
+            <div 
+              onMouseLeave={() => setShowNotifications(false)}
+              className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-700 rounded-lg shadow-xl p-4 z-10 border border-gray-200 dark:border-gray-600"
+            >
+              <h3 className="font-bold mb-2 text-gray-800 dark:text-white">Notifications</h3>
+              {notifications.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-300 text-sm">No notifications.</p>
+              ) : (
+                <ul>
+                  {notifications.map(notification => (
+                    <li 
+                      key={notification.id} 
+                      className={`border-b border-gray-200 dark:border-gray-600 py-2 last:border-b-0 ${notification.is_read ? 'text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-white font-medium'}`}
+                    >
+                      {notification.message}
+                      {!notification.is_read && (
+                        <button 
+                          onClick={() => onMarkNotificationAsRead(notification.id)}
+                          className="ml-2 text-blue-500 hover:text-blue-700 text-xs"
+                        >
+                          Mark as Read
+                        </button>
+                      )}
+                      <p className="text-xs text-gray-400 mt-1">{new Date(notification.created_at).toLocaleString()}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
+        {user && (
+          <Link to={`/dashboard/users/${user.id}`} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+            <UserCircle className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+          </Link>
         )}
       </div>
     </header>
@@ -203,6 +210,7 @@ const DashboardLayout = () => {
       <Sidebar role={user.role} fullName={user.full_name} isSidebarOpen={isSidebarOpen} />
       <div className="flex-1 flex flex-col">
         <Header 
+          user={user}
           notifications={notifications}
           onMarkNotificationAsRead={handleMarkNotificationAsRead}
           toggleSidebar={toggleSidebar}
