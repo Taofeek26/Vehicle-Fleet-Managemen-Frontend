@@ -10,7 +10,9 @@ const NotificationList = () => {
     const fetchNotifications = async () => {
       try {
         const response = await getNotifications();
-        setNotifications(response.data);
+        // Sort notifications by created_at in descending order
+        const sortedNotifications = response.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        setNotifications(sortedNotifications);
       } catch (err) {
         setError('Failed to fetch notifications.');
         console.error('Error fetching notifications:', err);

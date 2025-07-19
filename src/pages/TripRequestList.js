@@ -45,7 +45,22 @@ const TripRequestList = () => {
   };
 
   const getStatusClass = (status) => {
-    // ... (rest of the function is unchanged)
+    switch (status) {
+      case 'approved':
+        return 'bg-green-200 text-green-800';
+      case 'in_progress':
+        return 'bg-blue-200 text-blue-800';
+      case 'pending_manager_approval':
+        return 'bg-yellow-200 text-yellow-800';
+      case 'pending_supervisor_approval':
+        return 'bg-orange-200 text-orange-800';
+      case 'rejected':
+        return 'bg-red-200 text-red-800';
+      case 'completed':
+        return 'bg-gray-300 text-gray-800';
+      default:
+        return 'bg-gray-200 text-gray-700';
+    }
   };
 
   const headers = [
@@ -72,7 +87,18 @@ const TripRequestList = () => {
       <div className="bg-white rounded-lg shadow-md">
         <div className="overflow-x-auto">
           <table className="min-w-full leading-normal">
-            {/* ... (table head is unchanged) */}
+            <thead>
+              <tr className="bg-gray-800 text-white uppercase text-sm leading-normal">
+                <th className="py-3 px-6 text-left">Requester</th>
+                <th className="py-3 px-6 text-left">Vehicle</th>
+                <th className="py-3 px-6 text-left">Driver</th>
+                <th className="py-3 px-6 text-left">Destination</th>
+                <th className="py-3 px-6 text-left">Start Time</th>
+                <th className="py-3 px-6 text-left">End Time</th>
+                <th className="py-3 px-6 text-left">Status</th>
+                <th className="py-3 px-6 text-center">Actions</th>
+              </tr>
+            </thead>
             <tbody className="text-gray-600 text-sm">
               {paginatedTrips.map((request) => {
                 const isTripActive = request.status === 'approved' || request.status === 'in_progress';

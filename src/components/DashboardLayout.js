@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Outlet, useNavigate, Link } from "react-router-dom";
 import { getCurrentUser, getNotifications, markNotificationAsRead } from "../api";
 import { Bell, Car, Users, LogOut, FilePlus, List, Map, Home as HomeIcon, Menu } from 'lucide-react';
+import { useTheme } from './ThemeContext';
+import ThemeSwitcher from './ThemeSwitcher';
 
 const Sidebar = ({ role, fullName, isSidebarOpen }) => {
   const commonLinks = [
@@ -76,7 +78,7 @@ const Header = ({ notifications, onMarkNotificationAsRead, toggleSidebar, isSide
       </div>
       <div className="relative">
         <button 
-          onClick={() => setShowNotifications(!showNotifications)}
+          onClick={() => setShowNotifications(true)}
           className="relative p-2 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <Bell className="h-6 w-6 text-gray-600" />
@@ -88,7 +90,10 @@ const Header = ({ notifications, onMarkNotificationAsRead, toggleSidebar, isSide
         </button>
         
         {showNotifications && (
-          <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl p-4 z-10 border border-gray-200">
+          <div 
+            onMouseLeave={() => setShowNotifications(false)}
+            className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl p-4 z-10 border border-gray-200"
+          >
             <h3 className="font-bold mb-2 text-gray-800">Notifications</h3>
             {notifications.length === 0 ? (
               <p className="text-gray-500 text-sm">No notifications.</p>
@@ -121,11 +126,16 @@ const Header = ({ notifications, onMarkNotificationAsRead, toggleSidebar, isSide
 };
 
 const DashboardLayout = () => {
+  const { theme } = useTheme();
   const [user, setUser] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // New state for sidebar
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.documentElement.className = theme;
+  }, [theme]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -151,7 +161,6 @@ const DashboardLayout = () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         navigate("/login");
-      } else {
       }
     } finally {
       setLoading(false);
@@ -160,7 +169,7 @@ const DashboardLayout = () => {
 
   useEffect(() => {
     fetchUserDataAndNotifications();
-    const notificationInterval = setInterval(fetchUserDataAndNotifications, 30000); 
+    const notificationInterval = setInterval(fetchUserDataAndNotifications, 30000);
     return () => clearInterval(notificationInterval);
   }, [fetchUserDataAndNotifications]);
 
@@ -190,20 +199,21 @@ const DashboardLayout = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100 overflow-x-hidden"> {/* Add overflow-x-hidden here */}
+    <div className={`flex h-screen overflow-hidden ${theme}`}>
       <Sidebar role={user.role} fullName={user.full_name} isSidebarOpen={isSidebarOpen} />
-      <div className="flex-1 flex flex-col transition-all duration-300">
+      <div className="flex-1 flex flex-col">
         <Header 
           notifications={notifications}
           onMarkNotificationAsRead={handleMarkNotificationAsRead}
           toggleSidebar={toggleSidebar}
           isSidebarOpen={isSidebarOpen}
         />
-        <main className="p-6 flex-1 overflow-y-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
           <div className="container mx-auto max-w-7xl">
             <Outlet />
           </div>
         </main>
+        <ThemeSwitcher />
       </div>
     </div>
   );

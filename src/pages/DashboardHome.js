@@ -109,23 +109,6 @@ const DashboardHome = () => {
     return { assignedVehicle, activeTrips, completedTrips };
   };
 
-  const getSupervisorSubordinates = () => {
-    const directSubordinates = users.filter(u => u.reports_to === user.id);
-    let allSubordinates = new Set(directSubordinates.map(u => u.id));
-    let queue = [...directSubordinates];
-    while (queue.length > 0) {
-      const current = queue.shift();
-      const indirectReports = users.filter(u => u.reports_to === current.id);
-      indirectReports.forEach(u => {
-        if (!allSubordinates.has(u.id)) {
-          allSubordinates.add(u.id);
-          queue.push(u);
-        }
-      });
-    }
-    return users.filter(u => allSubordinates.has(u.id));
-  };
-
   const getSupervisorTrips = () => {
     return tripRequests;
   };
@@ -154,6 +137,18 @@ const DashboardHome = () => {
             <DashboardCard title="Pending Supervisor" value={tripRequests.filter(req => req.status === 'pending_supervisor_approval').length} link="/dashboard/trip-requests" />
             <DashboardCard title="Pending Manager" value={tripRequests.filter(req => req.status === 'pending_manager_approval').length} link="/dashboard/trip-requests" />
           </div>
+
+          <DashboardCard title="Direct Reports" colSpan="lg:col-span-full">
+            <ul className="list-disc list-inside">
+              {users.filter(u => u.reports_to === user.id).map(sub => (
+                <li key={sub.id} className="mb-1">
+                  <Link to={`/dashboard/users/${sub.id}`} className="text-blue-600 hover:underline">
+                    {sub.full_name || sub.username} ({sub.role})
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </DashboardCard>
 
           {/* Row 2: Bar Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -222,7 +217,6 @@ const DashboardHome = () => {
               <Link to="/dashboard/trip-requests" className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">Approve Trip Requests</Link>
             </div>
           </DashboardCard>
-          <DashboardCard title="My Subordinates" value={getSupervisorSubordinates().length} link="/dashboard/users" />
           <DashboardCard title="Vehicles Under My Care" value={vehicles.filter(v => v.supervisor === user.id || users.some(u => u.id === v.assigned_driver && u.reports_to === user.id)).length} link="/dashboard/vehicles" />
           <DashboardCard title="Pending Supervisor Approvals" value={getSupervisorTrips().filter(req => req.status === 'pending_supervisor_approval').length} link="/dashboard/trip-requests" />
           <DashboardCard title="Pending Manager Approvals" value={getSupervisorTrips().filter(req => req.status === 'pending_manager_approval').length} link="/dashboard/trip-requests" />
@@ -251,12 +245,31 @@ const DashboardHome = () => {
             </ResponsiveContainer>
           </DashboardCard>
 
-          <DashboardCard title="My Direct Subordinates" colSpan="lg:col-span-2 xl:col-span-2">
-            <ul className="list-disc list-inside">
-              {users.filter(u => u.reports_to === user.id).map(sub => (
-                <li key={sub.id} className="mb-1"><Link to={`/dashboard/records/user/${sub.id}`} className="text-blue-600 hover:underline">{sub.full_name || sub.username} ({sub.role})</Link></li>
-              ))}
-            </ul>
+          <DashboardCard title="My Direct Subordinates" colSpan="lg:col-span-2 xl:col-span-4">
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="py-2 px-4 text-left">Name</th>
+                    <th className="py-2 px-4 text-left">Role</th>
+                    <th className="py-2 px-4 text-left">View</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.filter(u => u.reports_to === user.id).map(sub => (
+                    <tr key={sub.id} className="border-b">
+                      <td className="py-2 px-4">{sub.full_name || sub.username}</td>
+                      <td className="py-2 px-4">{sub.role}</td>
+                      <td className="py-2 px-4">
+                        <Link to={`/dashboard/users/${sub.id}`} className="text-blue-600 hover:underline">
+                          Profile
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </DashboardCard>
         </div>
       )}

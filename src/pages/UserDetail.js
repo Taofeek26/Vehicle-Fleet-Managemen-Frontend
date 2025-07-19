@@ -56,7 +56,13 @@ const UserDetail = () => {
     const submissionData = new FormData();
     // Append all form data
     for (const key in formData) {
-      if (formData[key] !== null && formData[key] !== undefined) {
+      if (key === 'reports_to') {
+        if (formData[key] === "" || formData[key] === null || formData[key] === "None") {
+          submissionData.append(key, "");
+        } else {
+          submissionData.append(key, formData[key]);
+        }
+      } else if (formData[key] !== null && formData[key] !== undefined) {
         submissionData.append(key, formData[key]);
       }
     }
@@ -64,11 +70,6 @@ const UserDetail = () => {
     if (profilePictureFile) {
       submissionData.append('profile_picture', profilePictureFile);
     }
-    // Handle reports_to specifically
-    if (formData.reports_to === "" || formData.reports_to === "null" || formData.reports_to === null) {
-      submissionData.set('reports_to', ''); // Send empty string for null
-    }
-
 
     try {
       const response = await updateUser(id, submissionData);

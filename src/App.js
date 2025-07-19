@@ -20,54 +20,56 @@ import NotificationList from "./pages/NotificationList"; // New import
 import RecordDetailsPage from "./pages/RecordDetailsPage"; // New import
 import DashboardHome from "./pages/DashboardHome"; // New import
 import EndTripForm from "./pages/EndTripForm"; // New import
+import { ThemeProvider } from "./components/ThemeContext";
 import NotFound from "./pages/NotFound";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Authentication */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/logout" element={<Logout />} />
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Authentication */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/logout" element={<Logout />} />
 
-        {/* Protected Routes */}
-        <Route element={<PrivateRoute />}>
-          <Route path="dashboard" element={<DashboardLayout />}>
-            <Route index element={<DashboardHome />} />
-            {/* User Management */}
-            <Route path="users" element={<UserList />} />
-            <Route path="users/:id" element={<UserDetail />} /> {/* New Route */}
+          {/* Protected Routes */}
+          <Route element={<PrivateRoute />}>
+            <Route path="dashboard" element={<DashboardLayout />}>
+              <Route index element={<DashboardHome />} />
+              {/* User Management */}
+              <Route path="users" element={<UserList />} />
+              <Route path="users/:id" element={<UserDetail />} />
 
-            {/* Vehicle Management */}
-            <Route path="vehicles" element={<VehicleList />} />
-            <Route path="add-vehicle" element={<AddVehicle />} />
-            <Route path="vehicles/:id" element={<VehicleDetail />} /> {/* New Route */}
+              {/* Vehicle Management */}
+              <Route path="vehicles" element={<VehicleList />} />
+              <Route path="add-vehicle" element={<AddVehicle />} />
+              <Route path="vehicles/:id" element={<VehicleDetail />} />
 
-            {/* Trip Requests */}
-            <Route path="trip-requests" element={<TripRequestList />} />
-            <Route path="create-trip-request" element={<CreateTripRequest />} />
-            <Route path="trip-requests/:id" element={<TripRequestDetail />} /> {/* New Route */}
-            <Route path="approve-request/:id" element={<ManagerApprovalPage />} />
-            <Route path="end-trip/:id" element={<EndTripForm />} /> {/* New Route for End Trip */}
-            
+              {/* Trip Requests */}
+              <Route path="trip-requests" element={<TripRequestList />} />
+              <Route path="create-trip-request" element={<CreateTripRequest />} />
+              <Route path="trip-requests/:id" element={<TripRequestDetail />} />
+              <Route path="approve-request/:id" element={<ManagerApprovalPage />} />
+              <Route path="end-trip/:id" element={<EndTripForm />} />
+              
+              {/* Notifications */}
+              <Route path="notifications" element={<NotificationList />} />
 
-            {/* Notifications */}
-            <Route path="notifications" element={<NotificationList />} /> {/* New Route */}
+              {/* Map */}
+              <Route path="map" element={<MapPage />} />
 
-            {/* Map */}
-            <Route path="map" element={<MapPage />} />
-
-            {/* Single Record Details Page */}
-            <Route path="records/:type/:id" element={<RecordDetailsPage />} /> {/* New Route */}
+              {/* Single Record Details Page */}
+              <Route path="records/:type/:id" element={<RecordDetailsPage />} />
+            </Route>
           </Route>
-        </Route>
 
-        {/* Fallback Route */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+          {/* Fallback Route */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

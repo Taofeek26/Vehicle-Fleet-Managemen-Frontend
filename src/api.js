@@ -20,7 +20,7 @@ API.interceptors.request.use(
 
 // Authentication APIs
 export const login = (data) => API.post("login/", data);
-export const register = (data) => API.post("register/", data);
+export const register = (data) => API.post("users/register/", data);
 export const getCurrentUser = () => API.get("user-details/");
 
 // User Management APIs
