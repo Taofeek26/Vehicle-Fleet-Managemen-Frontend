@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTripRequestDetail, approveTripRequestSupervisor, approveTripRequestManager, rejectTripRequest, getCurrentUser } from '../api';
 
 const TripRequestDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate(); // Add useNavigate hook
+  const navigate = useNavigate();
   const [tripRequest, setTripRequest] = useState(null);
-  const [user, setUser] = useState(null); // Store full user object to check ID
+  const [user, setUser] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const fetchTripRequestAndUser = async () => {
+  const fetchTripRequestAndUser = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -19,18 +19,18 @@ const TripRequestDetail = () => {
         getCurrentUser()
       ]);
       setTripRequest(tripResponse.data);
-      setUser(userResponse.data); // Set full user object
+      setUser(userResponse.data);
     } catch (err) {
       console.error('Failed to fetch data:', err);
       setError('Failed to load trip request details or user data.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     fetchTripRequestAndUser();
-  }, [id, fetchTripRequestAndUser]);
+  }, [fetchTripRequestAndUser]);
 
   const handleSupervisorApproval = async () => {
     if (window.confirm('Are you sure you want to approve this trip request as a Supervisor?')) {

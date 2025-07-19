@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Outlet, useNavigate, Link } from "react-router-dom";
 import { getCurrentUser, getNotifications, markNotificationAsRead } from "../api";
 import { Bell, Car, Users, LogOut, FilePlus, List, Map, Home as HomeIcon, Menu } from 'lucide-react';
@@ -131,7 +131,7 @@ const DashboardLayout = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const fetchUserDataAndNotifications = async () => {
+  const fetchUserDataAndNotifications = useCallback(async () => {
     const token = localStorage.getItem('access_token');
     if (!token) {
       setLoading(false);
@@ -156,13 +156,13 @@ const DashboardLayout = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
   useEffect(() => {
     fetchUserDataAndNotifications();
     const notificationInterval = setInterval(fetchUserDataAndNotifications, 30000); 
     return () => clearInterval(notificationInterval);
-  }, [navigate, fetchUserDataAndNotifications]);
+  }, [fetchUserDataAndNotifications]);
 
   const handleMarkNotificationAsRead = async (notificationId) => {
     try {
