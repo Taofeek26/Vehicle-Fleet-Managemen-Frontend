@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../api";
+import { Button } from "../components/ui/Button"; // Import the custom Button
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -8,6 +9,7 @@ const Login = () => {
     password: "",
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // Add loading state
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -17,6 +19,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true); // Set loading to true
 
     try {
       const response = await login(formData);
@@ -26,6 +29,8 @@ const Login = () => {
     } catch (err) {
       console.error("Login failed:", err.response?.data);
       setError(err.response?.data?.detail || "Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false); // Set loading to false
     }
   };
 
@@ -60,12 +65,13 @@ const Login = () => {
               className="w-full px-4 py-2 mt-1 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          <button
+          <Button
             type="submit"
-            className="w-full px-4 py-3 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="w-full"
+            loading={loading}
           >
             Login
-          </button>
+          </Button>
         </form>
         <p className="text-center text-gray-600">
           Don't have an account?{' '}

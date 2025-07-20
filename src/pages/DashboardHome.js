@@ -247,21 +247,23 @@ const DashboardHome = () => {
 
           <DashboardCard title="My Direct Subordinates" colSpan="lg:col-span-2 xl:col-span-4">
             <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-gray-100">
+              <table className="w-full text-sm text-left text-gray-500">
+                <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                   <tr>
-                    <th className="py-2 px-4 text-left">Name</th>
-                    <th className="py-2 px-4 text-left">Role</th>
-                    <th className="py-2 px-4 text-left">View</th>
+                    <th scope="col" className="px-6 py-3">Name</th>
+                    <th scope="col" className="px-6 py-3">Role</th>
+                    <th scope="col" className="px-6 py-3">View</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.filter(u => u.reports_to === user.id).map(sub => (
-                    <tr key={sub.id} className="border-b">
-                      <td className="py-2 px-4">{sub.full_name || sub.username}</td>
-                      <td className="py-2 px-4">{sub.role}</td>
-                      <td className="py-2 px-4">
-                        <Link to={`/dashboard/users/${sub.id}`} className="text-blue-600 hover:underline">
+                    <tr key={sub.id} className="bg-white border-b">
+                      <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                        {sub.full_name || sub.username}
+                      </th>
+                      <td className="px-6 py-4">{sub.role}</td>
+                      <td className="px-6 py-4">
+                        <Link to={`/dashboard/users/${sub.id}`} className="font-medium text-blue-600 hover:underline">
                           Profile
                         </Link>
                       </td>

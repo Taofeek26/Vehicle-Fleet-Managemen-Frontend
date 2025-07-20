@@ -1,9 +1,11 @@
 import axios from "axios";
 
+//const API = axios.create({
+  //baseURL: "http://127.0.0.1:8000/api/",
+//});
 const API = axios.create({
       baseURL: process.env.REACT_APP_API_URL || "http://127.0.0.1:8000/api/",
     });
-
 // Interceptor to include token from localStorage on every request
 API.interceptors.request.use(
   (config) => {

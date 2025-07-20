@@ -60,16 +60,11 @@ const VehicleList = () => {
   const COLORS = ["#0088FE", "#00C49F"];
 
   const headers = [
-    { label: "ID", key: "id" },
-    { label: "Vehicle Name", key: "vehicle_name" },
-    { label: "Vehicle Number", key: "vehicle_number" },
+    { label: "Name", key: "vehicle_name" },
+    { label: "Number", key: "vehicle_number" },
     { label: "Assigned Driver", key: "assigned_driver_name" },
-    { label: "Supervisor", key: "supervisor_name" },
-    { label: "Last Maintenance", key: "last_maintenance_date" },
-    { label: "Next Maintenance", key: "next_maintenance_date" },
-    { label: "Latitude", key: "latitude" },
-    { label: "Longitude", key: "longitude" },
-    { label: "Last Updated", key: "last_updated" },
+    { label: "Last Maint.", key: "last_maintenance_date" },
+    { label: "Location", key: "latitude" },
   ];
 
   if (loading) return <div className="text-center py-4">Loading vehicles...</div>;
@@ -130,42 +125,44 @@ const VehicleList = () => {
           <h3 className="text-xl font-semibold">All Vehicles</h3>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full leading-normal">
-            <thead>
-              <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                <th className="py-3 px-6 text-left">Name</th>
-                <th className="py-3 px-6 text-left">Number</th>
-                <th className="py-3 px-6 text-left">Assigned Driver</th>
-                <th className="py-3 px-6 text-left">Last Maint.</th>
-                <th className="py-3 px-6 text-left">Location</th>
-                <th className="py-3 px-6 text-center">Actions</th>
+          <table className="w-full text-sm text-left text-gray-500">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3">Name</th>
+                <th scope="col" className="px-6 py-3">Number</th>
+                <th scope="col" className="px-6 py-3">Assigned Driver</th>
+                <th scope="col" className="px-6 py-3">Last Maint.</th>
+                <th scope="col" className="px-6 py-3">Location</th>
+                <th scope="col" className="px-6 py-3">Actions</th>
               </tr>
             </thead>
-            <tbody className="text-gray-600 text-sm font-light">
+            <tbody>
               {vehicles.length > 0 ? (
                 vehicles.map((vehicle) => (
-                  <tr key={vehicle.id} className="border-b border-gray-200 hover:bg-gray-100">
-                    <td className="py-3 px-6 text-left whitespace-nowrap font-medium">{vehicle.vehicle_name}</td>
-                    <td className="py-3 px-6 text-left">{vehicle.vehicle_number}</td>
-                    <td className="py-3 px-6 text-left">{vehicle.assigned_driver_name || "N/A"}</td>
-                    <td className="py-3 px-6 text-left">{vehicle.last_maintenance_date || "N/A"}</td>
-                    <td className="py-3 px-6 text-left">
+                  <tr key={vehicle.id} className="bg-white border-b">
+                    <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                      {vehicle.vehicle_name}
+                    </th>
+                    <td className="px-6 py-4">{vehicle.vehicle_number}</td>
+                    <td className="px-6 py-4">{vehicle.assigned_driver_name || "N/A"}</td>
+                    <td className="px-6 py-4">{vehicle.last_maintenance_date || "N/A"}</td>
+                    <td className="px-6 py-4">
                       {vehicle.latitude && vehicle.longitude
                         ? `${vehicle.latitude.toFixed(4)}, ${vehicle.longitude.toFixed(4)}`
                         : "N/A"}
                     </td>
-                    <td className="py-3 px-6 text-center">
-                      <div className="flex item-center justify-center gap-2">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
                         <Link
                           to={`/dashboard/vehicles/${vehicle.id}`}
-                          className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+                          className="font-medium text-blue-600 hover:underline"
                         >
                           View/Edit
                         </Link>
                         {["manager", "supervisor"].includes(userRole) && (
                           <button
                             onClick={() => handleDeleteVehicle(vehicle.id)}
-                            className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition"
+                            className="font-medium text-red-600 hover:underline"
                           >
                             Delete
                           </button>

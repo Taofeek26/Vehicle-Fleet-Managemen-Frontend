@@ -64,7 +64,13 @@ const TripRequestList = () => {
   };
 
   const headers = [
-    // ... (headers are unchanged)
+    { label: "Requester", key: "requester_name" },
+    { label: "Vehicle", key: "vehicle_name" },
+    { label: "Driver", key: "driver_name" },
+    { label: "Destination", key: "destination" },
+    { label: "Start Time", key: "start_time" },
+    { label: "End Time", key: "end_time" },
+    { label: "Status", key: "status" },
   ];
 
   if (loading) return <div className="text-center py-4">Loading trip requests...</div>;
@@ -75,9 +81,11 @@ const TripRequestList = () => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold text-gray-800">Trip Requests</h2>
         <div className="flex gap-4">
-          <Link to="/dashboard/create-trip-request" className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700">
-            Create New Trip
-          </Link>
+          {currentUser && currentUser.role === 'staff' && (
+            <Link to="/dashboard/create-trip-request" className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700">
+              Create New Trip
+            </Link>
+          )}
           <CSVLink data={tripRequests} headers={headers} filename={"trip_requests.csv"} className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700">
             Export to CSV
           </CSVLink>
@@ -86,47 +94,50 @@ const TripRequestList = () => {
       {error && <p className="text-red-500 mb-4">{error}</p>}
       <div className="bg-white rounded-lg shadow-md">
         <div className="overflow-x-auto">
-          <table className="min-w-full leading-normal">
-            <thead>
-              <tr className="bg-gray-800 text-white uppercase text-sm leading-normal">
-                <th className="py-3 px-6 text-left">Requester</th>
-                <th className="py-3 px-6 text-left">Vehicle</th>
-                <th className="py-3 px-6 text-left">Driver</th>
-                <th className="py-3 px-6 text-left">Destination</th>
-                <th className="py-3 px-6 text-left">Start Time</th>
-                <th className="py-3 px-6 text-left">End Time</th>
-                <th className="py-3 px-6 text-left">Status</th>
-                <th className="py-3 px-6 text-center">Actions</th>
+          <table className="w-full text-sm text-left text-gray-500">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3">Requester</th>
+                <th scope="col" className="px-6 py-3">Vehicle</th>
+                <th scope="col" className="px-6 py-3">Driver</th>
+                <th scope="col" className="px-6 py-3">Destination</th>
+                <th scope="col" className="px-6 py-3">Start Time</th>
+                <th scope="col" className="px-6 py-3">End Time</th>
+                <th scope="col" className="px-6 py-3">Status</th>
+                <th scope="col" className="px-6 py-3">Actions</th>
               </tr>
             </thead>
-            <tbody className="text-gray-600 text-sm">
+            <tbody>
               {paginatedTrips.map((request) => {
                 const isTripActive = request.status === 'approved' || request.status === 'in_progress';
                 const canEndTrip = currentUser && (
                   currentUser.role === 'manager' ||
                   currentUser.role === 'supervisor' ||
+                  currentUser.role === 'staff' ||
                   (currentUser.role === 'driver' && request.driver === currentUser.id)
                 );
 
                 return (
-                  <tr key={request.id} className="border-b border-gray-200 hover:bg-gray-100">
-                    <td className="py-3 px-6 text-left whitespace-nowrap">{request.requester_name}</td>
-                    <td className="py-3 px-6 text-left">{request.vehicle_name}</td>
-                    <td className="py-3 px-6 text-left">{request.driver_name || "N/A"}</td>
-                    <td className="py-3 px-6 text-left">{request.destination}</td>
-                    <td className="py-3 px-6 text-left">{new Date(request.start_time).toLocaleString()}</td>
-                    <td className="py-3 px-6 text-left">{request.end_time ? new Date(request.end_time).toLocaleString() : "N/A"}</td>
-                    <td className="py-3 px-6 text-left">
+                  <tr key={request.id} className="bg-white border-b">
+                    <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                      {request.requester_name}
+                    </th>
+                    <td className="px-6 py-4">{request.vehicle_name}</td>
+                    <td className="px-6 py-4">{request.driver_name || "N/A"}</td>
+                    <td className="px-6 py-4">{request.destination}</td>
+                    <td className="px-6 py-4">{new Date(request.start_time).toLocaleString()}</td>
+                    <td className="px-6 py-4">{request.end_time ? new Date(request.end_time).toLocaleString() : "N/A"}</td>
+                    <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusClass(request.status)}`}>
                         {request.status.replace(/_/g, " ")}
                       </span>
                     </td>
-                    <td className="py-3 px-6 text-center">
-                      <div className="flex item-center justify-center space-x-2">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
                         {currentUser && (currentUser.role === 'supervisor' || currentUser.role === 'manager') && (request.status === 'pending_supervisor_approval' || request.status === 'pending_manager_approval') && (
                           <Link
                             to={`/dashboard/trip-requests/${request.id}`}
-                            className="px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition duration-300"
+                            className="font-medium text-blue-600 hover:underline"
                           >
                             Review
                           </Link>
@@ -134,7 +145,7 @@ const TripRequestList = () => {
                         {canEndTrip && isTripActive && (
                           <button
                             onClick={() => handleEndTrip(request.id)}
-                            className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-300"
+                            className="font-medium text-red-600 hover:underline"
                           >
                             End Trip
                           </button>

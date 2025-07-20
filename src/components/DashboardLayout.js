@@ -208,7 +208,7 @@ const DashboardLayout = () => {
   return (
     <div className={`flex h-screen overflow-hidden ${theme}`}>
       <Sidebar role={user.role} fullName={user.full_name} isSidebarOpen={isSidebarOpen} />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-x-auto">
         <Header 
           user={user}
           notifications={notifications}
@@ -217,8 +217,10 @@ const DashboardLayout = () => {
           isSidebarOpen={isSidebarOpen}
         />
         <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
-          <div className="container mx-auto max-w-7xl">
-            <Outlet />
+          <div className="w-full overflow-x-auto">
+            <div className="container mx-auto max-w-7xl">
+              <Outlet />
+            </div>
           </div>
         </main>
         <ThemeSwitcher />
